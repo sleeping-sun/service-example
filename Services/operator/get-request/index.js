@@ -1,32 +1,56 @@
 'use sctrict'
 
-
 var amqp = require('../../../System/amqp.js');
 var Promise = require('bluebird');
-var coordinator = require('./coordinator');
-var db_face = require('../../../System/db-face.js');
+//var Queue = require('./queue.js');
+var Queue = require('./async-queue.js');
+
+var transport = require('../../Transport/transport-level.js')('internal');
+//var transport = require('../../Transport/transport-level.js')('parent-process');
+//var transport = require('../../Transport/transport-level.js')('message-based');
+
 var pid = process.pid;
+var queue_name = 'operator_events';
 
 console.log('(%d) Get-Request Service Reporting', pid);
 
-//@TODO: use arrow function in callback
-amqp.subscribe('operator_events', function (msg) {
-    if (msg !== null) {
-        var message = JSON.parse(msg.content.toString());
-        console.log('%d recieved event: %s || filters: %s', pid, message.event, message.filter ? 'message.filter' : 'all');
-        msg.ack();
-        db_face.getRequests(message.filter).then(function (d) {
-            var result = d[0];
-            result.requests.assigned = pid;
-            return db_face.assignRequest(result);
-        }).then(function (d) {
-            console.log('s:', d);
-        }).catch(function (e) {
-            console.log('Error:', e)
-        });
+var process_queue = new Queue();
+
+//time mark
+var start = 0;
+
+process_queue.process_function = function () {
+    return transport.db_action('getRequests', {
+        filter: null
+    }).then(function (d) {
+        var req = d[0];
+        req.requests.assigned = pid;
+        return transport.db_action('assignRequest', req);
+    });
+};
+
+
+process_queue.subscribe('processed', function (data) {
+    console.log('(%d): In queue %d', pid, process_queue.queueLength());
+    // set time mark when queue empty
+    if (process_queue.queueLength() === 0) {
+        var end = process.hrtime(start);
+        console.log(end);
     }
-}).then(function () {
-    console.log('subscribed');
 });
 
-//process.send('wololo');
+//@TODO: use arrow function in callback... someday...
+amqp.subscribe(queue_name, function (msg) {
+    if (msg !== null) {
+        var message = JSON.parse(msg.content.toString());
+        console.log('(%d) received event: %s || filters: %s', pid, message.event, message.filter ? 'message.filter' : 'all');
+        //set time mark when first message received
+        if (!start) {
+            start = process.hrtime();
+        }
+
+        process_queue.push(msg);
+    }
+}).then(function () {
+    console.log('(%d) Subscribed on %s', pid, queue_name);
+});

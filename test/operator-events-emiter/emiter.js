@@ -11,7 +11,9 @@ open.then(function (conn) {
         ch.assertQueue(q);
         var message = {
             filter: false,
-            event: 'call_next'
+            event: 'call_next',
+            timestamp: (new Date()).getTime()
+
         };
         for (var i = 0; i < count; i += 1) {
             ch.sendToQueue(q, new Buffer(JSON.stringify(message)));

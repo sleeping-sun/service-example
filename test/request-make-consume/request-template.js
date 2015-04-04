@@ -12,6 +12,9 @@ var placeholders = {
     },
     default: function () {
         return 'PLACEHOLDER_MISSING';
+    },
+    rnd: function () {
+        return parseInt(Math.random() * 7);
     }
 };
 

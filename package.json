@@ -25,6 +25,8 @@
   "dependencies": {
     "amqplib": "^0.3.1",
     "bluebird": "^2.9.14",
-    "couchbase": "^2.0.6"
+    "couchbase": "^2.0.6",
+    "lodash": "^3.6.0",
+    "node-uuid": "^1.4.3"
   }
 }

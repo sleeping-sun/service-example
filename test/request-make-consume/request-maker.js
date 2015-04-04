@@ -8,9 +8,7 @@ var inserts_count = 0;
 console.log('start', count);
 
 var request = require('./request-template.js');
-request.setConst('type', 'test_type1');
-
-
+request.setConst('type', 'test_type2');
 
 
 var bucket = cluster.openBucket('requests', function (err) {

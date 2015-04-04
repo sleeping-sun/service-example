@@ -17,11 +17,12 @@ bucket.enableN1ql(['127.0.0.1:8093']);
 
 
 module.exports.getRequests = function (filter) {
+
     var strquery = "SELECT *, META(requests) as meta FROM requests WHERE assigned = false";
     if (filter) {
-        strquery += " AND type = 'filter'";
+        strquery += " AND type = '" + filter + "'";
     }
-    strquery += " ORDER BY timestamp DESC LIMIT 5";
+    strquery += " ORDER BY timestamp DESC LIMIT 1";
     var p = new Promise(function (resolve, reject) {
         var query = N1qlQuery.fromString(strquery);
         bucket.query(query, function (err, res) {
@@ -38,7 +39,7 @@ module.exports.getRequests = function (filter) {
 module.exports.assignRequest = function (req) {
     var data = req.requests;
     var meta = req.meta;
-    console.log('assigning %s to process %s', meta.id, data.assigned);
+    console.log('(%s): assigning %s', data.assigned, meta.id);
 
     var p = new Promise(function (resolve, reject) {
 

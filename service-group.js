@@ -33,7 +33,8 @@ var actions = {
             type: 'ready',
             body: {
                 success: success,
-                error: error
+                error: error,
+                description: message_body.name
             }
         };
         process.send(message);

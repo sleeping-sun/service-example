@@ -2,7 +2,7 @@ module.exports = {
     service_groups: [
         {
             name: 'service_group1',
-            services: ['operator/get-request', 'operator/get-request', 'missing_service']
+            services: ['operator/get-request']
         },
         {
             name: 'service_group2',

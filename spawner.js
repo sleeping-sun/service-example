@@ -2,6 +2,7 @@
 var child_process = require('child_process');
 
 var config = require('./System/config-reader');
+var messageHandler = require('./message-handler.js');
 
 var spawn_limit = config.getConst('spawn_limit');
 var groups_config = config.getServiceGroups();
@@ -24,9 +25,7 @@ var spawn = function (groups_config) {
             body: groups_config[i]
         };
         spawned_groups[i].send(message);
-        spawned_groups[i].on('message', function (message) {
-            console.log(message);
-        });
+        spawned_groups[i].on('message', new messageHandler(i, spawned_groups[i]));
     }
 };
 
